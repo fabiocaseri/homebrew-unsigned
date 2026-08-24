@@ -224,7 +224,7 @@ jobs:
 
           pr_url="$(
             gh pr create \
-              --base main \
+              --base test/automatic-update \
               --head "${branch}" \
               --title "${PACKAGE_NAME}: update ${CURRENT} to ${LATEST}" \
               --body "$(cat <<EOF
