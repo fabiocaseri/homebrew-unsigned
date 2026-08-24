@@ -53,3 +53,4 @@ No upstream application binaries are distributed by this repository.
 This is an independent third-party Homebrew tap. It is not affiliated with or endorsed by Homebrew or by the upstream projects represented here.
 
 Users remain responsible for deciding whether they trust the software and upstream sources they install.
+
