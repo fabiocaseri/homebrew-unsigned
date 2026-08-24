@@ -224,7 +224,11 @@ jobs:
             brew trust --cask "${fq}"
             brew install --cask "${fq}"
 
-            mapfile -t apps < <(
+            apps=()
+
+            while IFS= read -r app; do
+              apps+=("${app}")
+            done < <(
               brew info --json=v2 --cask "${fq}" |
                 ruby -rjson -e '
                   data = JSON.parse(STDIN.read)
