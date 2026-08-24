@@ -218,7 +218,13 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git checkout -b "${branch}"
-          git add "Casks/${PACKAGE_NAME}.rb" "Formula/${PACKAGE_NAME}.rb" 2>/dev/null || true
+
+          if [[ "${PACKAGE_TYPE}" == "cask" ]]; then
+            git add "Casks/${PACKAGE_NAME}.rb"
+          else
+            git add "Formula/${PACKAGE_NAME}.rb"
+          fi
+
           git commit -m "${PACKAGE_NAME}: update ${CURRENT} to ${LATEST}"
           git push -u origin "${branch}"
 
