@@ -1,0 +1,195 @@
+name: Validate
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  HOMEBREW_NO_ANALYTICS: "1"
+  HOMEBREW_NO_ENV_HINTS: "1"
+  HOMEBREW_NO_AUTO_UPDATE: "1"
+
+jobs:
+  validate:
+    name: validate
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Show environment
+        run: |
+          sw_vers
+          uname -m
+          brew --version
+
+      - name: Validate metadata
+        shell: bash
+        run: |
+          ruby <<'RUBY'
+          require "yaml"
+          require "uri"
+          require "set"
+
+          file = "packages.yml"
+          abort "Missing #{file}" unless File.file?(file)
+
+          data = YAML.safe_load(File.read(file), aliases: false)
+          abort "packages.yml must contain a mapping" unless data.is_a?(Hash)
+          abort "Unsupported schema: #{data["schema"].inspect}" unless data["schema"] == 1
+
+          packages = data["packages"]
+          abort "packages must be a non-empty array" unless packages.is_a?(Array) && !packages.empty?
+
+          names = Set.new
+          allowed_types = %w[cask formula].freeze
+          allowed_upstreams = %w[github gitlab website git].freeze
+
+          packages.each_with_index do |package, index|
+            label = "packages[#{index}]"
+            abort "#{label} must be a mapping" unless package.is_a?(Hash)
+
+            name = package["name"]
+            type = package["type"]
+
+            abort "#{label}.name is required" unless name.is_a?(String) && name.match?(/\A[a-z0-9][a-z0-9@+._-]*\z/)
+            abort "Duplicate package name: #{name}" unless names.add?(name)
+            abort "#{name}: invalid type #{type.inspect}" unless allowed_types.include?(type)
+
+            recipe = type == "cask" ? "Casks/#{name}.rb" : "Formula/#{name}.rb"
+            abort "#{name}: missing recipe #{recipe}" unless File.file?(recipe)
+
+            upstream = package["upstream"]
+            abort "#{name}: upstream must be a mapping" unless upstream.is_a?(Hash)
+
+            upstream_type = upstream["type"]
+            upstream_url = upstream["url"]
+
+            abort "#{name}: unsupported upstream type #{upstream_type.inspect}" unless allowed_upstreams.include?(upstream_type)
+            abort "#{name}: upstream.url is required" unless upstream_url.is_a?(String)
+
+            begin
+              uri = URI.parse(upstream_url)
+            rescue URI::InvalidURIError => e
+              abort "#{name}: invalid upstream URL: #{e.message}"
+            end
+
+            abort "#{name}: upstream URL must use HTTPS" unless uri.scheme == "https"
+            abort "#{name}: upstream URL must have a hostname" if uri.host.nil? || uri.host.empty?
+
+            if upstream_type == "github"
+              abort "#{name}: github upstream must use github.com" unless uri.host.downcase == "github.com"
+              repo_path = uri.path.sub(%r{\A/}, "").sub(%r{/\z}, "")
+              abort "#{name}: github URL must identify owner/repository" unless repo_path.split("/").length >= 2
+            end
+
+            origin = package["origin"]
+            abort "#{name}: origin must be a mapping" unless origin.is_a?(Hash)
+            abort "#{name}: origin.tap is required" unless origin["tap"].is_a?(String) && !origin["tap"].empty?
+            abort "#{name}: origin.commit must be a 40-character Git SHA" unless origin["commit"].is_a?(String) && origin["commit"].match?(/\A[0-9a-f]{40}\z/)
+
+            update = package["update"]
+            abort "#{name}: update must be a mapping" unless update.is_a?(Hash)
+            abort "#{name}: update.enabled must be boolean" unless [true, false].include?(update["enabled"])
+
+            gatekeeper = package["gatekeeper"]
+            if gatekeeper
+              abort "#{name}: gatekeeper must be a mapping" unless gatekeeper.is_a?(Hash)
+              abort "#{name}: gatekeeper.dequarantine must be boolean" unless [true, false].include?(gatekeeper["dequarantine"])
+              abort "#{name}: gatekeeper metadata is only valid for casks" unless type == "cask"
+
+              if gatekeeper["dequarantine"]
+                source = File.read(recipe)
+                unless source.include?("/usr/bin/xattr") && source.include?("com.apple.quarantine")
+                  abort "#{name}: dequarantine is enabled in metadata but the cask has no matching xattr handling"
+                end
+              end
+            end
+          end
+
+          puts "Metadata OK: #{packages.length} package(s)"
+          RUBY
+
+      - name: Validate upstream provenance
+        shell: bash
+        run: |
+          ruby <<'RUBY'
+          require "yaml"
+          require "uri"
+
+          data = YAML.safe_load(File.read("packages.yml"), aliases: false)
+
+          data.fetch("packages").each do |package|
+            name = package.fetch("name")
+            type = package.fetch("type")
+            upstream = package.fetch("upstream")
+            uri = URI.parse(upstream.fetch("url"))
+            recipe = type == "cask" ? "Casks/#{name}.rb" : "Formula/#{name}.rb"
+            source = File.read(recipe)
+
+            expected =
+              if upstream.fetch("type") == "github"
+                path = uri.path.sub(%r{\A/}, "").sub(%r{/\z}, "")
+                "github.com/#{path}/"
+              else
+                uri.host
+              end
+
+            abort "#{name}: recipe does not reference declared upstream #{expected}" unless source.include?(expected)
+
+            puts "#{name}: upstream provenance OK (#{expected})"
+          end
+          RUBY
+
+      - name: Tap checked-out repository
+        shell: bash
+        run: |
+          brew tap fabiocaseri/unsigned "file://${GITHUB_WORKSPACE}"
+
+      - name: Homebrew style
+        shell: bash
+        run: |
+          ruby -ryaml -e '
+            YAML.safe_load(File.read("packages.yml"), aliases: false).fetch("packages").each do |p|
+              path = p.fetch("type") == "cask" ? "Casks/#{p.fetch("name")}.rb" : "Formula/#{p.fetch("name")}.rb"
+              system("brew", "style", path) or exit 1
+            end
+          '
+
+      - name: Homebrew audit
+        shell: bash
+        run: |
+          while IFS=$'\t' read -r name type; do
+            fq="fabiocaseri/unsigned/${name}"
+
+            if [[ "${type}" == "cask" ]]; then
+              brew trust --cask "${fq}"
+              brew audit --cask --strict "${fq}"
+            else
+              brew trust --formula "${fq}"
+              brew audit --formula --strict "${fq}"
+            fi
+          done < <(
+            ruby -ryaml -e '
+              YAML.safe_load(File.read("packages.yml"), aliases: false).fetch("packages").each do |p|
+                puts [p.fetch("name"), p.fetch("type")].join("\t")
+              end
+            '
+          )
+
+      - name: Homebrew livecheck
+        shell: bash
+        run: |
+          ruby -ryaml -e '
+            YAML.safe_load(File.read("packages.yml"), aliases: false).fetch("packages").each do |p|
+              fq = "fabiocaseri/unsigned/#{p.fetch("name")}"
+              system("brew", "livecheck", fq) or exit 1
+            end
+          '
