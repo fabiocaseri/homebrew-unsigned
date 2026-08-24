@@ -33,3 +33,19 @@ packages:
 
     update:
       enabled: true
+  - name: qbittorrent@lt20
+    type: cask
+
+    upstream:
+      type: website
+      url: https://www.qbittorrent.org/
+
+    origin:
+      tap: Homebrew/homebrew-cask
+      commit: 3ad0fe179fd48842a417ca056b3dcac26ab4b68b
+
+    gatekeeper:
+      dequarantine: true
+
+    update:
+      enabled: false

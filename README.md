@@ -115,6 +115,7 @@ brew install --cask fabiocaseri/unsigned/exifcleaner
 | --- | --- | --- | --- |
 | ExifCleaner | Cask | [szTheory/exifcleaner](https://github.com/szTheory/exifcleaner) | Maintained |
 | ImHex | Cask | [WerWolv/ImHex](https://github.com/WerWolv/ImHex) | Maintained |
+| qBittorrent | Cask | [www.qbittorrent.org](https://www.qbittorrent.org/) | Manual updates |
 
 <!-- PACKAGES:END -->
 
