@@ -24,6 +24,10 @@ Updates are submitted as pull requests and require manual review before merging.
 
 Package updates are checked automatically once per day.
 
+All packages are monitored with Homebrew `livecheck`, including packages whose recipes are intentionally configured for manual updates.
+
+If a newer version is detected for a manual-update package, the scheduled workflow opens or refreshes a GitHub issue for maintainer review without modifying the package recipe.
+
 For packages with automatic updates enabled in `packages.yml`, the update workflow:
 
 1. runs Homebrew `livecheck` to detect a newer upstream release;
