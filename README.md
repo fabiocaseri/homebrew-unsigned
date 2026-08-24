@@ -29,11 +29,16 @@ For packages with automatic updates enabled in `packages.yml`, the update workfl
 1. runs Homebrew `livecheck` to detect a newer upstream release;
 2. uses Homebrew's official bump tooling to update the package definition;
 3. verifies that only the expected package recipe was modified;
-4. creates a dedicated `autobump/...` branch;
-5. opens a pull request against `main`;
-6. runs the repository validation and security checks.
+4. validates that the recipe diff is within the allowed automatic-update policy;
+5. creates a dedicated `autobump/...` branch;
+6. opens a pull request against `main`;
+7. runs the repository validation and security checks.
 
 Automatic update pull requests are never merged automatically.
+
+For casks, automatic updates are currently accepted only when the Homebrew-generated diff changes the cask `version` and `sha256` fields. Any other recipe change causes the automatic update to stop for manual review.
+
+Automatic Formula diff validation is intentionally fail-safe for now: Formula updates require manual handling until a Formula-specific automatic-update policy is defined.
 
 The `main` branch is protected by a repository ruleset requiring the following checks to pass before merging:
 
@@ -43,6 +48,21 @@ The `main` branch is protected by a repository ruleset requiring the following c
 The security workflow records the installed application's code-signing and Gatekeeper state and verifies package-specific expectations such as quarantine removal.
 
 If an upstream release starts passing Gatekeeper checks, the workflow reports that condition for maintainer review rather than automatically removing the package from this tap.
+
+## Package import conventions
+
+Recipes imported from official Homebrew retain historical provenance in `packages.yml` through the original tap and exact source commit.
+
+If the original Homebrew recipe was disabled because of Gatekeeper, the imported recipe keeps the original `disable!` declaration as a comment rather than deleting it completely. The standard form is:
+
+```ruby
+# Upstream Homebrew status:
+# disable! date: "YYYY-MM-DD", because: :fails_gatekeeper_check
+```
+
+The commented declaration is historical metadata only and has no functional effect in this tap.
+
+Package-specific compatibility changes, such as quarantine handling, must remain narrowly scoped and must not modify, re-sign, or otherwise alter upstream application binaries.
 
 ## Maintainer setup
 
@@ -93,7 +113,7 @@ brew install --cask fabiocaseri/unsigned/exifcleaner
 
 <!-- PACKAGES:END -->
 
-This table will be generated automatically from the repository metadata.
+This table is generated automatically from the repository metadata.
 
 ## Licensing
 
