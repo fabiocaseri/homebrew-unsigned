@@ -24,6 +24,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Update Homebrew
+        run: brew update-if-needed
+
       - name: Show environment
         run: |
           sw_vers
@@ -193,3 +196,89 @@ jobs:
               system("brew", "livecheck", fq) or exit 1
             end
           '
+
+  security:
+    name: security
+    runs-on: macos-15
+    needs: validate
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Update Homebrew
+        run: brew update-if-needed
+
+      - name: Tap checked-out repository
+        shell: bash
+        run: |
+          brew tap fabiocaseri/unsigned "file://${GITHUB_WORKSPACE}"
+
+      - name: Install and inspect Gatekeeper casks
+        shell: bash
+        run: |
+          while IFS=$'\t' read -r name dequarantine; do
+            fq="fabiocaseri/unsigned/${name}"
+
+            echo "::group::${name}"
+            brew trust --cask "${fq}"
+            brew install --cask "${fq}"
+
+            mapfile -t apps < <(
+              brew info --json=v2 --cask "${fq}" |
+                ruby -rjson -e '
+                  data = JSON.parse(STDIN.read)
+                  data.fetch("casks").first.fetch("artifacts").each do |artifact|
+                    puts artifact["target"] if artifact.key?("app") && artifact["target"]
+                  end
+                '
+            )
+
+            if [[ "${#apps[@]}" -eq 0 ]]; then
+              echo "::error::${name}: no installed app artifact found in brew info JSON"
+              exit 1
+            fi
+
+            for app in "${apps[@]}"; do
+              if [[ ! -d "${app}" ]]; then
+                echo "::error::${name}: expected app not found at ${app}"
+                exit 1
+              fi
+
+              echo "App: ${app}"
+              echo "Code signing:"
+              codesign -dv --verbose=4 "${app}" 2>&1 || true
+
+              echo "Gatekeeper:"
+              set +e
+              gatekeeper_output="$(spctl --assess --type execute --verbose=4 "${app}" 2>&1)"
+              gatekeeper_rc=$?
+              set -e
+              printf '%s\n' "${gatekeeper_output}"
+
+              if [[ "${gatekeeper_rc}" -eq 0 ]]; then
+                echo "::warning::${name}: Gatekeeper now accepts ${app}. Check whether this package can return to official Homebrew."
+              fi
+
+              if [[ "${dequarantine}" == "true" ]]; then
+                if xattr -p com.apple.quarantine "${app}" >/dev/null 2>&1; then
+                  echo "::error::${name}: com.apple.quarantine is still present after installation"
+                  exit 1
+                else
+                  echo "Quarantine attribute: absent (expected)"
+                fi
+              fi
+            done
+
+            brew uninstall --cask "${fq}"
+            echo "::endgroup::"
+          done < <(
+            ruby -ryaml -e '
+              YAML.safe_load(File.read("packages.yml"), aliases: false).fetch("packages").each do |p|
+                next unless p.fetch("type") == "cask"
+                gatekeeper = p["gatekeeper"]
+                next unless gatekeeper
+                puts [p.fetch("name"), gatekeeper.fetch("dequarantine")].join("\t")
+              end
+            '
+          )
