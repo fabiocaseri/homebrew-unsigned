@@ -110,6 +110,7 @@ brew install --cask fabiocaseri/unsigned/exifcleaner
 | Package | Type | Upstream | Status |
 | --- | --- | --- | --- |
 | ExifCleaner | Cask | [szTheory/exifcleaner](https://github.com/szTheory/exifcleaner) | Maintained |
+| ImHex | Cask | [WerWolv/ImHex](https://github.com/WerWolv/ImHex) | Maintained |
 
 <!-- PACKAGES:END -->
 
