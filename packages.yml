@@ -1,0 +1,19 @@
+schema: 1
+
+packages:
+  - name: exifcleaner
+    type: cask
+
+    upstream:
+      type: github
+      url: https://github.com/szTheory/exifcleaner
+
+    origin:
+      tap: Homebrew/homebrew-cask
+      commit: 51d41eaf7554cce8492b86e149ac1183032c222a
+
+    gatekeeper:
+      dequarantine: true
+
+    update:
+      enabled: true
