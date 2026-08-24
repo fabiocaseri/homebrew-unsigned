@@ -183,6 +183,21 @@ jobs:
           echo "Homebrew-generated diff:"
           git diff -- "${recipe}"
 
+      - name: Validate automatic update diff
+        if: ${{ steps.livecheck.outputs.outdated == 'true' }}
+        shell: bash
+        env:
+          PACKAGE_NAME: ${{ matrix.package.name }}
+          PACKAGE_TYPE: ${{ matrix.package.type }}
+        run: |
+          if [[ "${PACKAGE_TYPE}" == "cask" ]]; then
+            recipe="Casks/${PACKAGE_NAME}.rb"
+          else
+            recipe="Formula/${PACKAGE_NAME}.rb"
+          fi
+
+          ruby scripts/validate-update-diff.rb "${PACKAGE_TYPE}" "${recipe}"
+
       - name: Create update pull request
         if: ${{ steps.livecheck.outputs.outdated == 'true' }}
         shell: bash
