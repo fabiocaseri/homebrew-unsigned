@@ -121,6 +121,19 @@ jobs:
           puts "Metadata OK: #{packages.length} package(s)"
           RUBY
 
+      - name: Validate generated README package table
+        shell: bash
+        run: |
+          ruby scripts/update-readme-packages.rb
+
+          if ! git diff --quiet -- README.md; then
+            echo "::error::README package table is out of date. Run scripts/update-readme-packages.rb and commit README.md."
+            git diff -- README.md
+            exit 1
+          fi
+
+          echo "README package table is up to date."
+
       - name: Validate upstream provenance
         shell: bash
         run: |

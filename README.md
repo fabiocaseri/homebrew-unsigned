@@ -89,7 +89,7 @@ brew install --cask fabiocaseri/unsigned/exifcleaner
 
 | Package | Type | Upstream | Status |
 | --- | --- | --- | --- |
-| ExifCleaner | Cask | szTheory/exifcleaner | Maintained |
+| ExifCleaner | Cask | [szTheory/exifcleaner](https://github.com/szTheory/exifcleaner) | Maintained |
 
 <!-- PACKAGES:END -->
 
