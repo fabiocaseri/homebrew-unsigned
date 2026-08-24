@@ -17,3 +17,19 @@ packages:
 
     update:
       enabled: true
+  - name: imhex
+    type: cask
+
+    upstream:
+      type: github
+      url: https://github.com/WerWolv/ImHex
+
+    origin:
+      tap: Homebrew/homebrew-cask
+      commit: e52aa85374a93957ea492f29719c86860e0b3be5
+
+    gatekeeper:
+      dequarantine: true
+
+    update:
+      enabled: true
