@@ -1,0 +1,247 @@
+name: Update packages
+
+on:
+  schedule:
+    - cron: "17 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+env:
+  HOMEBREW_NO_ANALYTICS: "1"
+  HOMEBREW_NO_ENV_HINTS: "1"
+  HOMEBREW_NO_AUTO_UPDATE: "1"
+  HOMEBREW_GITHUB_API_TOKEN: ${{ github.token }}
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  discover:
+    name: discover
+    runs-on: macos-15
+    outputs:
+      packages: ${{ steps.matrix.outputs.packages }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Build package matrix
+        id: matrix
+        shell: bash
+        run: |
+          ruby <<'RUBY'
+          require "json"
+          require "yaml"
+
+          data = YAML.safe_load(File.read("packages.yml"), aliases: false)
+          packages = data.fetch("packages")
+                         .select { |package| package.dig("update", "enabled") == true }
+                         .map do |package|
+                           {
+                             "name" => package.fetch("name"),
+                             "type" => package.fetch("type"),
+                           }
+                         end
+
+          File.open(ENV.fetch("GITHUB_OUTPUT"), "a") do |output|
+            output.puts "packages=#{JSON.generate(packages)}"
+          end
+
+          puts "Enabled packages: #{packages.map { |p| p["name"] }.join(", ")}"
+          RUBY
+
+  update:
+    name: update ${{ matrix.package.name }}
+    needs: discover
+    if: ${{ needs.discover.outputs.packages != '[]' }}
+    runs-on: macos-15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.discover.outputs.packages) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Update Homebrew
+        run: brew update-if-needed
+
+      - name: Tap checked-out repository
+        shell: bash
+        run: |
+          brew tap fabiocaseri/unsigned "file://${GITHUB_WORKSPACE}"
+
+      - name: Trust package
+        shell: bash
+        env:
+          PACKAGE_NAME: ${{ matrix.package.name }}
+          PACKAGE_TYPE: ${{ matrix.package.type }}
+        run: |
+          fq="fabiocaseri/unsigned/${PACKAGE_NAME}"
+
+          if [[ "${PACKAGE_TYPE}" == "cask" ]]; then
+            brew trust --cask "${fq}"
+          else
+            brew trust --formula "${fq}"
+          fi
+
+      - name: Check latest version
+        id: livecheck
+        shell: bash
+        env:
+          PACKAGE_NAME: ${{ matrix.package.name }}
+          PACKAGE_TYPE: ${{ matrix.package.type }}
+        run: |
+          fq="fabiocaseri/unsigned/${PACKAGE_NAME}"
+
+          if [[ "${PACKAGE_TYPE}" == "cask" ]]; then
+            json="$(brew livecheck --json --cask "${fq}")"
+          else
+            json="$(brew livecheck --json --formula "${fq}")"
+          fi
+
+          printf '%s\n' "${json}"
+
+          CURRENT="$(
+            printf '%s' "${json}" |
+              ruby -rjson -e 'data = JSON.parse(STDIN.read).first; puts data.fetch("version").fetch("current")'
+          )"
+
+          LATEST="$(
+            printf '%s' "${json}" |
+              ruby -rjson -e 'data = JSON.parse(STDIN.read).first; puts data.fetch("version").fetch("latest")'
+          )"
+
+          OUTDATED="$(
+            printf '%s' "${json}" |
+              ruby -rjson -e 'data = JSON.parse(STDIN.read).first; puts data.fetch("version").fetch("outdated")'
+          )"
+
+          {
+            echo "current=${CURRENT}"
+            echo "latest=${LATEST}"
+            echo "outdated=${OUTDATED}"
+          } >> "${GITHUB_OUTPUT}"
+
+          if [[ "${OUTDATED}" != "true" ]]; then
+            echo "${PACKAGE_NAME} is up to date (${CURRENT})."
+          else
+            echo "${PACKAGE_NAME}: ${CURRENT} -> ${LATEST}"
+          fi
+
+      - name: Prepare update
+        if: ${{ steps.livecheck.outputs.outdated == 'true' }}
+        shell: bash
+        env:
+          PACKAGE_NAME: ${{ matrix.package.name }}
+          PACKAGE_TYPE: ${{ matrix.package.type }}
+          LATEST: ${{ steps.livecheck.outputs.latest }}
+        run: |
+          fq="fabiocaseri/unsigned/${PACKAGE_NAME}"
+          tap_dir="$(brew --repository fabiocaseri/unsigned)"
+
+          if [[ "${PACKAGE_TYPE}" == "cask" ]]; then
+            recipe="Casks/${PACKAGE_NAME}.rb"
+            brew bump-cask-pr \
+              --write-only \
+              --version "${LATEST}" \
+              "${fq}"
+          else
+            recipe="Formula/${PACKAGE_NAME}.rb"
+            brew bump-formula-pr \
+              --write-only \
+              --version "${LATEST}" \
+              "${fq}"
+          fi
+
+          if [[ ! -f "${tap_dir}/${recipe}" ]]; then
+            echo "::error::Updated recipe not found at ${tap_dir}/${recipe}"
+            exit 1
+          fi
+
+          cp "${tap_dir}/${recipe}" "${GITHUB_WORKSPACE}/${recipe}"
+
+          changed_files="$(git diff --name-only)"
+
+          if [[ "${changed_files}" != "${recipe}" ]]; then
+            echo "::error::Automatic update changed unexpected files:"
+            printf '%s\n' "${changed_files}"
+            exit 1
+          fi
+
+          if git diff --quiet -- "${recipe}"; then
+            echo "::error::Homebrew reported an update but did not modify ${recipe}"
+            exit 1
+          fi
+
+          echo "Homebrew-generated diff:"
+          git diff -- "${recipe}"
+
+      - name: Create update pull request
+        if: ${{ steps.livecheck.outputs.outdated == 'true' }}
+        shell: bash
+        env:
+          PACKAGE_NAME: ${{ matrix.package.name }}
+          PACKAGE_TYPE: ${{ matrix.package.type }}
+          CURRENT: ${{ steps.livecheck.outputs.current }}
+          LATEST: ${{ steps.livecheck.outputs.latest }}
+        run: |
+          safe_latest="$(printf '%s' "${LATEST}" | tr -cs 'A-Za-z0-9._-' '-')"
+          branch="autobump/${PACKAGE_NAME}-${safe_latest}"
+
+          if git ls-remote --exit-code --heads origin "${branch}" >/dev/null 2>&1; then
+            existing_pr="$(
+              gh pr list \
+                --head "${branch}" \
+                --state open \
+                --json number,url \
+                --jq '.[0].url // empty'
+            )"
+
+            if [[ -n "${existing_pr}" ]]; then
+              echo "Update PR already exists: ${existing_pr}"
+              exit 0
+            fi
+
+            echo "::error::Remote branch ${branch} already exists but has no open PR. Clean it up manually before retrying."
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "${branch}"
+          git add "Casks/${PACKAGE_NAME}.rb" "Formula/${PACKAGE_NAME}.rb" 2>/dev/null || true
+          git commit -m "${PACKAGE_NAME}: update ${CURRENT} to ${LATEST}"
+          git push -u origin "${branch}"
+
+          pr_url="$(
+            gh pr create \
+              --base main \
+              --head "${branch}" \
+              --title "${PACKAGE_NAME}: update ${CURRENT} to ${LATEST}" \
+              --body "$(cat <<EOF
+          Automated Homebrew update for \`${PACKAGE_NAME}\`.
+
+          - Type: \`${PACKAGE_TYPE}\`
+          - Current version: \`${CURRENT}\`
+          - Latest upstream version: \`${LATEST}\`
+          - Recipe update generated by Homebrew's official bump command.
+          - Merge remains manual.
+          EOF
+          )"
+          )"
+
+          echo "Created ${pr_url}"
+
+          # A PR opened with GITHUB_TOKEN does not automatically run the normal
+          # pull_request workflow without approval. Dispatch Validate explicitly
+          # on the update branch so required checks run on the PR head commit.
+          gh workflow run validate.yml --ref "${branch}"
