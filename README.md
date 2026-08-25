@@ -115,7 +115,7 @@ brew install --cask fabiocaseri/unsigned/exifcleaner
 
 | Package | Type | Upstream | Status | Gatekeeper context |
 | --- | --- | --- | --- | --- |
-| ExifCleaner | Cask | [szTheory/exifcleaner](https://github.com/szTheory/exifcleaner) | Maintained | [wontfix](https://github.com/szTheory/exifcleaner/issues/331) |
+| ExifCleaner | Cask | [szTheory/exifcleaner](https://github.com/szTheory/exifcleaner) | Maintained | [won't fix](https://github.com/szTheory/exifcleaner/issues/331) |
 | ImHex | Cask | [WerWolv/ImHex](https://github.com/WerWolv/ImHex) | Maintained | [not planned](https://github.com/WerWolv/ImHex/issues/2657) |
 | qBittorrent | Cask | [www.qbittorrent.org](https://www.qbittorrent.org/) | Manual updates | [open](https://github.com/qbittorrent/qBittorrent/issues/24052) · [context](https://github.com/qbittorrent/qBittorrent/issues/10085) |
 | RAR Archiver | Cask | [www.rarlab.com](https://www.rarlab.com/) | Maintained | — |

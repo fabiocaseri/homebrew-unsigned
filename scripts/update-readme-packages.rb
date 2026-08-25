@@ -47,12 +47,19 @@ def status_for(package)
   package.fetch("update").fetch("enabled") ? "Maintained" : "Manual updates"
 end
 
+def gatekeeper_context_status_label(status)
+  {
+    "wontfix" => "won't fix",
+    "not_planned" => "not planned",
+  }.fetch(status, status.tr("_", " "))
+end
+
 def gatekeeper_context_for(package)
   context = package.dig("gatekeeper", "upstream_context")
   return "—" unless context.is_a?(Array) && !context.empty?
 
   context.map do |entry|
-    label = entry.fetch("status").tr("_", " ")
+    label = gatekeeper_context_status_label(entry.fetch("status"))
     url = entry.fetch("url")
     "[#{escape_cell(label)}](#{url})"
   end.join(" · ")
