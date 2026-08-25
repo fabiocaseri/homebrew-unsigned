@@ -55,6 +55,7 @@ jobs:
           names = Set.new
           allowed_types = %w[cask formula].freeze
           allowed_upstreams = %w[github gitlab website git].freeze
+          allowed_gatekeeper_context_statuses = %w[wontfix not_planned open context].freeze
 
           packages.each_with_index do |package, index|
             label = "packages[#{index}]"
@@ -108,6 +109,33 @@ jobs:
               abort "#{name}: gatekeeper must be a mapping" unless gatekeeper.is_a?(Hash)
               abort "#{name}: gatekeeper.dequarantine must be boolean" unless [true, false].include?(gatekeeper["dequarantine"])
               abort "#{name}: gatekeeper metadata is only valid for casks" unless type == "cask"
+
+              upstream_context = gatekeeper["upstream_context"]
+              if upstream_context
+                unless upstream_context.is_a?(Array) && !upstream_context.empty?
+                  abort "#{name}: gatekeeper.upstream_context must be a non-empty array"
+                end
+
+                upstream_context.each_with_index do |entry, context_index|
+                  context_label = "#{name}: gatekeeper.upstream_context[#{context_index}]"
+                  abort "#{context_label} must be a mapping" unless entry.is_a?(Hash)
+
+                  context_url = entry["url"]
+                  status = entry["status"]
+
+                  abort "#{context_label}.url is required" unless context_url.is_a?(String)
+
+                  begin
+                    context_uri = URI.parse(context_url)
+                  rescue URI::InvalidURIError => e
+                    abort "#{context_label}.url is invalid: #{e.message}"
+                  end
+
+                  abort "#{context_label}.url must use HTTPS" unless context_uri.scheme == "https"
+                  abort "#{context_label}.url must have a hostname" if context_uri.host.nil? || context_uri.host.empty?
+                  abort "#{context_label}.status must be one of #{allowed_gatekeeper_context_statuses.join(", ")}" unless allowed_gatekeeper_context_statuses.include?(status)
+                end
+              end
 
               if gatekeeper["dequarantine"]
                 source = File.read(recipe)

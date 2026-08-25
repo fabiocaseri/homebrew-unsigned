@@ -14,6 +14,9 @@ packages:
 
     gatekeeper:
       dequarantine: true
+      upstream_context:
+        - url: https://github.com/szTheory/exifcleaner/issues/331
+          status: wontfix
 
     update:
       enabled: true
@@ -30,6 +33,9 @@ packages:
 
     gatekeeper:
       dequarantine: true
+      upstream_context:
+        - url: https://github.com/WerWolv/ImHex/issues/2657
+          status: not_planned
 
     update:
       enabled: true
@@ -46,6 +52,11 @@ packages:
 
     gatekeeper:
       dequarantine: true
+      upstream_context:
+        - url: https://github.com/qbittorrent/qBittorrent/issues/24052
+          status: open
+        - url: https://github.com/qbittorrent/qBittorrent/issues/10085
+          status: context
 
     update:
       enabled: false
