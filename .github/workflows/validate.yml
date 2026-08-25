@@ -238,55 +238,74 @@ jobs:
             brew trust --cask "${fq}"
             brew install --cask "${fq}"
 
-            apps=()
+            targets_found=0
 
-            while IFS= read -r app; do
-              apps+=("${app}")
-            done < <(
-              brew info --json=v2 --cask "${fq}" |
-                ruby -rjson -e '
-                  data = JSON.parse(STDIN.read)
-                  data.fetch("casks").first.fetch("artifacts").each do |artifact|
-                    puts artifact["target"] if artifact.key?("app") && artifact["target"]
-                  end
-                '
-            )
+            while IFS=$'\t' read -r artifact_type target; do
+              [[ -n "${artifact_type}" && -n "${target}" ]] || continue
+              targets_found=$((targets_found + 1))
 
-            if [[ "${#apps[@]}" -eq 0 ]]; then
-              echo "::error::${name}: no installed app artifact found in brew info JSON"
-              exit 1
-            fi
+              case "${artifact_type}" in
+                app)
+                  if [[ ! -d "${target}" ]]; then
+                    echo "::error::${name}: expected app not found at ${target}"
+                    exit 1
+                  fi
+                  ;;
+                binary)
+                  if [[ ! -x "${target}" ]]; then
+                    echo "::error::${name}: expected executable binary not found at ${target}"
+                    exit 1
+                  fi
+                  ;;
+                *)
+                  echo "::error::${name}: unsupported executable artifact type ${artifact_type}"
+                  exit 1
+                  ;;
+              esac
 
-            for app in "${apps[@]}"; do
-              if [[ ! -d "${app}" ]]; then
-                echo "::error::${name}: expected app not found at ${app}"
-                exit 1
-              fi
-
-              echo "App: ${app}"
+              echo "Artifact type: ${artifact_type}"
+              echo "Target: ${target}"
               echo "Code signing:"
-              codesign -dv --verbose=4 "${app}" 2>&1 || true
+              codesign -dv --verbose=4 "${target}" 2>&1 || true
 
               echo "Gatekeeper:"
               set +e
-              gatekeeper_output="$(spctl --assess --type execute --verbose=4 "${app}" 2>&1)"
+              gatekeeper_output="$(spctl --assess --type execute --verbose=4 "${target}" 2>&1)"
               gatekeeper_rc=$?
               set -e
               printf '%s\n' "${gatekeeper_output}"
 
               if [[ "${gatekeeper_rc}" -eq 0 ]]; then
-                echo "::warning::${name}: Gatekeeper now accepts ${app}. Check whether this package can return to official Homebrew."
+                echo "::warning::${name}: Gatekeeper now accepts ${target}. Check whether this package can return to official Homebrew."
               fi
 
               if [[ "${dequarantine}" == "true" ]]; then
-                if xattr -p com.apple.quarantine "${app}" >/dev/null 2>&1; then
-                  echo "::error::${name}: com.apple.quarantine is still present after installation"
+                if xattr -p com.apple.quarantine "${target}" >/dev/null 2>&1; then
+                  echo "::error::${name}: com.apple.quarantine is still present on ${target} after installation"
                   exit 1
                 else
                   echo "Quarantine attribute: absent (expected)"
                 fi
               fi
-            done
+            done < <(
+              brew info --json=v2 --cask "${fq}" |
+                ruby -rjson -e '
+                  data = JSON.parse(STDIN.read)
+
+                  data.fetch("casks").first.fetch("artifacts").each do |artifact|
+                    if artifact.key?("app") && artifact["target"]
+                      puts ["app", artifact.fetch("target")].join("\t")
+                    elsif artifact.key?("binary") && artifact["target"]
+                      puts ["binary", artifact.fetch("target")].join("\t")
+                    end
+                  end
+                '
+            )
+
+            if [[ "${targets_found}" -eq 0 ]]; then
+              echo "::error::${name}: no executable app or binary artifact found in brew info JSON"
+              exit 1
+            fi
 
             brew uninstall --cask "${fq}"
             echo "::endgroup::"
