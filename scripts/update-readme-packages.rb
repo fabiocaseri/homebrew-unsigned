@@ -47,6 +47,17 @@ def status_for(package)
   package.fetch("update").fetch("enabled") ? "Maintained" : "Manual updates"
 end
 
+def gatekeeper_context_for(package)
+  context = package.dig("gatekeeper", "upstream_context")
+  return "—" unless context.is_a?(Array) && !context.empty?
+
+  context.map do |entry|
+    label = entry.fetch("status").tr("_", " ")
+    url = entry.fetch("url")
+    "[#{escape_cell(label)}](#{url})"
+  end.join(" · ")
+end
+
 abort "Missing #{METADATA_FILE}" unless File.file?(METADATA_FILE)
 abort "Missing #{README_FILE}" unless File.file?(README_FILE)
 
@@ -63,12 +74,13 @@ rows = packages
       escape_cell(package.fetch("type").capitalize),
       "[#{escape_cell(upstream_label(upstream_url))}](#{upstream_url})",
       escape_cell(status_for(package)),
+      gatekeeper_context_for(package),
     ]
   end
 
 table = [
-  "| Package | Type | Upstream | Status |",
-  "| --- | --- | --- | --- |",
+  "| Package | Type | Upstream | Status | Gatekeeper context |",
+  "| --- | --- | --- | --- | --- |",
   *rows.map { |row| "| #{row.join(' | ')} |" },
 ].join("\n")
 
