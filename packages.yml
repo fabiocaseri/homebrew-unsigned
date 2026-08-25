@@ -61,3 +61,19 @@ packages:
     update:
       enabled: false
       release_url_template: https://github.com/qbittorrent/qBittorrent/releases/tag/release-{version}
+  - name: rar
+    type: cask
+
+    upstream:
+      type: website
+      url: https://www.rarlab.com/
+
+    origin:
+      tap: Homebrew/homebrew-cask
+      commit: 30572303def82f0edd0d165adf48b5aec98a6a08
+
+    gatekeeper:
+      dequarantine: true
+
+    update:
+      enabled: true
