@@ -8,13 +8,13 @@ This tap preserves convenient Homebrew installation and update workflows for sel
 
 Packages in this tap continue to download artifacts directly from their original upstream sources.
 
-This repository does **not** mirror, modify, re-sign, or redistribute upstream application binaries.
+This repository does **not** mirror, modify, re-sign, or redistribute upstream binaries.
 
 ## Security model
 
 This tap deliberately packages software that may not pass macOS Gatekeeper checks.
 
-Where explicitly enabled for a package, the tap may remove the `com.apple.quarantine` attribute from the installed application after Homebrew has downloaded and verified the artifact against the checksum recorded in the cask.
+Where explicitly enabled for a package, the tap may remove the `com.apple.quarantine` attribute from installed executable artifacts after Homebrew has downloaded and verified the artifact against the checksum recorded in the cask.
 
 Automated updates verify upstream provenance, release assets, checksums, Homebrew metadata, code-signing state, and Gatekeeper status before changes can be merged.
 
@@ -49,7 +49,7 @@ The `main` branch is protected by a repository ruleset requiring the following c
 - `validate`
 - `security`
 
-The security workflow records the installed application's code-signing and Gatekeeper state and verifies package-specific expectations such as quarantine removal.
+The security workflow records the installed executable artifacts' code-signing and Gatekeeper state and verifies package-specific expectations such as quarantine removal.
 
 If an upstream release starts passing Gatekeeper checks, the workflow reports that condition for maintainer review rather than automatically removing the package from this tap.
 
@@ -68,7 +68,7 @@ The commented declaration is historical metadata only and has no functional effe
 
 Gatekeeper metadata may also include optional `upstream_context` references to relevant upstream discussions, issues, or maintainer positions. These references are documentary context only; they do not alter installation or update behavior. Each reference records an HTTPS URL and a controlled status such as `wontfix`, `not_planned`, `open`, or `context`.
 
-Package-specific compatibility changes, such as quarantine handling, must remain narrowly scoped and must not modify, re-sign, or otherwise alter upstream application binaries.
+Package-specific compatibility changes, such as quarantine handling, must remain narrowly scoped and must not modify, re-sign, or otherwise alter upstream binaries.
 
 ## Maintainer setup
 
@@ -118,6 +118,7 @@ brew install --cask fabiocaseri/unsigned/exifcleaner
 | ExifCleaner | Cask | [szTheory/exifcleaner](https://github.com/szTheory/exifcleaner) | Maintained |
 | ImHex | Cask | [WerWolv/ImHex](https://github.com/WerWolv/ImHex) | Maintained |
 | qBittorrent | Cask | [www.qbittorrent.org](https://www.qbittorrent.org/) | Manual updates |
+| RAR Archiver | Cask | [www.rarlab.com](https://www.rarlab.com/) | Maintained |
 
 <!-- PACKAGES:END -->
 
