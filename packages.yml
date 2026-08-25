@@ -60,3 +60,4 @@ packages:
 
     update:
       enabled: false
+      release_url_template: https://github.com/qbittorrent/qBittorrent/releases/tag/release-{version}

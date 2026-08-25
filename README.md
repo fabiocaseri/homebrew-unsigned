@@ -26,7 +26,7 @@ Package updates are checked automatically once per day.
 
 All packages are monitored with Homebrew `livecheck`, including packages whose recipes are intentionally configured for manual updates.
 
-If a newer version is detected for a manual-update package, the scheduled workflow opens or refreshes a GitHub issue for maintainer review without modifying the package recipe.
+If a newer version is detected for a manual-update package, the scheduled workflow opens or refreshes a GitHub issue for maintainer review without modifying the package recipe. When `update.release_url_template` is configured, the issue includes a direct link to the detected upstream release by substituting the latest version into the single `{version}` placeholder.
 
 For packages with automatic updates enabled in `packages.yml`, the update workflow:
 
@@ -65,6 +65,8 @@ If the original Homebrew recipe was disabled because of Gatekeeper, the imported
 ```
 
 The commented declaration is historical metadata only and has no functional effect in this tap.
+
+Gatekeeper metadata may also include optional `upstream_context` references to relevant upstream discussions, issues, or maintainer positions. These references are documentary context only; they do not alter installation or update behavior. Each reference records an HTTPS URL and a controlled status such as `wontfix`, `not_planned`, `open`, or `context`.
 
 Package-specific compatibility changes, such as quarantine handling, must remain narrowly scoped and must not modify, re-sign, or otherwise alter upstream application binaries.
 
