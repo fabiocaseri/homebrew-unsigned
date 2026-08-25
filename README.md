@@ -72,24 +72,22 @@ Package-specific compatibility changes, such as quarantine handling, must remain
 
 ## Maintainer setup
 
-The update workflow uses GitHub's standard `GITHUB_TOKEN` with read-only repository permissions for normal workflow operations.
+The update workflow uses GitHub's standard `GITHUB_TOKEN` for read-only operations and the repository-scoped `fabiocaseri-automation` GitHub App for repository mutations.
 
-Creating an update branch and pull request requires a separate fine-grained personal access token so that the resulting pull request triggers the normal `pull_request` validation workflow.
+The GitHub App provides a dedicated bot identity and short-lived installation access tokens for automated issues, commits, branches, and pull requests. Its installation is restricted to selected repositories and currently includes only this repository.
 
-Create a fine-grained personal access token with access limited to this repository and the following repository permissions:
+Repository Actions configuration requires:
+
+- repository variable `FABIOCASERI_AUTOMATION_CLIENT_ID`;
+- repository secret `FABIOCASERI_AUTOMATION_PRIVATE_KEY`.
+
+The App is installed with the minimum repository permissions required by the workflow:
 
 - **Contents:** Read and write
+- **Issues:** Read and write
 - **Pull requests:** Read and write
 
-Store the token as the following GitHub Actions repository secret:
-
-```text
-HOMEBREW_UPDATE_TOKEN
-```
-
-The token is exposed only to the workflow step responsible for pushing the update branch and creating the pull request.
-
-The token should have an expiration date and must be replaced before or after expiry for automated updates to continue working.
+The complete registration, installation, credential rotation, verification, and recovery procedure is documented in [`docs/github-app.md`](docs/github-app.md).
 
 Repository configuration also requires:
 
@@ -98,8 +96,6 @@ Repository configuration also requires:
 - required status checks `validate` and `security`;
 - force pushes blocked;
 - automatic deletion of merged pull-request branches enabled.
-
-A future improvement may replace the maintainer personal access token with a repository-scoped GitHub App, providing a dedicated bot identity and short-lived credentials.
 
 ## Installation
 
@@ -130,7 +126,7 @@ The source code, Homebrew package definitions, metadata and automation contained
 
 Third-party software installed through this tap remains subject to its own upstream license and copyright terms.
 
-No upstream application binaries are distributed by this repository.
+No upstream binaries are distributed by this repository.
 
 ## Disclaimer
 
