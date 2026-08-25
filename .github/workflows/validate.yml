@@ -104,6 +104,22 @@ jobs:
             abort "#{name}: update must be a mapping" unless update.is_a?(Hash)
             abort "#{name}: update.enabled must be boolean" unless [true, false].include?(update["enabled"])
 
+            release_url_template = update["release_url_template"]
+            if release_url_template
+              abort "#{name}: update.release_url_template is only valid when automatic updates are disabled" if update["enabled"]
+              abort "#{name}: update.release_url_template must be a string" unless release_url_template.is_a?(String)
+              abort "#{name}: update.release_url_template must contain exactly one {version} placeholder" unless release_url_template.scan("{version}").length == 1
+
+              begin
+                release_uri = URI.parse(release_url_template.sub("{version}", "1.0.0"))
+              rescue URI::InvalidURIError => e
+                abort "#{name}: invalid update.release_url_template: #{e.message}"
+              end
+
+              abort "#{name}: update.release_url_template must use HTTPS" unless release_uri.scheme == "https"
+              abort "#{name}: update.release_url_template must have a hostname" if release_uri.host.nil? || release_uri.host.empty?
+            end
+
             gatekeeper = package["gatekeeper"]
             if gatekeeper
               abort "#{name}: gatekeeper must be a mapping" unless gatekeeper.is_a?(Hash)

@@ -42,6 +42,7 @@ jobs:
                              "name" => package.fetch("name"),
                              "type" => package.fetch("type"),
                              "auto_update" => package.dig("update", "enabled") == true,
+                             "release_url_template" => package.dig("update", "release_url_template"),
                            }
                          end
 
@@ -144,19 +145,28 @@ jobs:
           PACKAGE_TYPE: ${{ matrix.package.type }}
           CURRENT: ${{ steps.livecheck.outputs.current }}
           LATEST: ${{ steps.livecheck.outputs.latest }}
+          RELEASE_URL_TEMPLATE: ${{ matrix.package.release_url_template }}
         run: |
           title="Update available: ${PACKAGE_NAME}"
+          release_url=""
 
-          cat > manual-update-issue.md <<EOF
-          A newer upstream version was detected for \`${PACKAGE_NAME}\`, which is configured for manual updates.
+          if [[ -n "${RELEASE_URL_TEMPLATE}" ]]; then
+            release_url="${RELEASE_URL_TEMPLATE/\{version\}/${LATEST}}"
+          fi
 
-          - Type: \`${PACKAGE_TYPE}\`
-          - Current version: \`${CURRENT}\`
-          - Latest upstream version: \`${LATEST}\`
-          - Automatic recipe modification is disabled for this package.
-
-          Review the upstream release and update the recipe manually when appropriate.
-          EOF
+          {
+            echo "A newer upstream version was detected for \`${PACKAGE_NAME}\`, which is configured for manual updates."
+            echo
+            echo "- Type: \`${PACKAGE_TYPE}\`"
+            echo "- Current version: \`${CURRENT}\`"
+            echo "- Latest upstream version: \`${LATEST}\`"
+            if [[ -n "${release_url}" ]]; then
+              echo "- Upstream release: ${release_url}"
+            fi
+            echo "- Automatic recipe modification is disabled for this package."
+            echo
+            echo "Review the upstream release and update the recipe manually when appropriate."
+          } > manual-update-issue.md
 
           existing_issue="$(
             gh issue list \
