@@ -10,6 +10,8 @@ Packages in this tap continue to download artifacts directly from their original
 
 This repository does **not** mirror, modify, re-sign, or redistribute upstream binaries.
 
+Project status and planned work are tracked in [`ROADMAP.md`](ROADMAP.md).
+
 ## Security model
 
 This tap deliberately packages software that may not pass macOS Gatekeeper checks.
