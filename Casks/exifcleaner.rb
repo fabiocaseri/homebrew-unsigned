@@ -22,11 +22,10 @@ cask "exifcleaner" do
 
   app "ExifCleaner.app"
 
-  postflight do
-    system_command "/usr/bin/xattr",
-                   args:         ["-dr", "com.apple.quarantine", "#{appdir}/ExifCleaner.app"],
-                   sudo:         false,
-                   must_succeed: false
+  postflight_steps do
+    run "/usr/bin/xattr",
+        args:         ["-dr", "com.apple.quarantine", "{{appdir}}/ExifCleaner.app"],
+        must_succeed: false
   end
 
   zap trash: [

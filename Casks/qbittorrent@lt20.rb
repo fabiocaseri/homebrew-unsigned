@@ -1,7 +1,6 @@
 cask "qbittorrent@lt20" do
   arch intel: "x86_64"
   os macos: "mac", linux: "appimage"
-
   url_end = on_system_conditional macos: ".dmg", linux: "_#{arch}.AppImage"
 
   on_monterey :or_older do
@@ -27,7 +26,6 @@ cask "qbittorrent@lt20" do
       regex(%r{url=.*?/qbittorrent[._-]v?(\d+(?:\.\d+)+)[._-]lt20#{url_end}}i)
     end
   end
-
   on_macos do
     # Upstream Homebrew status:
     # disable! date: "2026-09-01", because: :fails_gatekeeper_check
@@ -35,11 +33,10 @@ cask "qbittorrent@lt20" do
     # Renamed for consistency: app name is different in the Finder and in a shell.
     app "qbittorrent.app", target: "qBittorrent.app"
 
-    postflight do
-      system_command "/usr/bin/xattr",
-                     args:         ["-dr", "com.apple.quarantine", "#{appdir}/qBittorrent.app"],
-                     sudo:         false,
-                     must_succeed: false
+    postflight_steps do
+      run "/usr/bin/xattr",
+          args:         ["-dr", "com.apple.quarantine", "{{appdir}}/qBittorrent.app"],
+          must_succeed: false
     end
 
     zap trash: [
