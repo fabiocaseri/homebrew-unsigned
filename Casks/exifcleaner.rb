@@ -6,7 +6,6 @@ cask "exifcleaner" do
          intel: "29f052d00c46c6fd2b26d76f8b9853f625d2ecd380c8a32c21c5f711489f7ba4"
 
   url "https://github.com/szTheory/exifcleaner/releases/download/v#{version}/ExifCleaner-#{version}#{arch}.dmg",
-      verified: "github.com/szTheory/exifcleaner/"
   name "ExifCleaner"
   desc "Metadata cleaner"
   homepage "https://exifcleaner.com/"
