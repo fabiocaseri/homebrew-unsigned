@@ -12,8 +12,7 @@ cask "imhex" do
     depends_on macos: :sequoia
   end
 
-  url "https://github.com/WerWolv/ImHex/releases/download/v#{version}/imhex-#{version}-macOS-#{arch}.dmg",
-      verified: "github.com/WerWolv/ImHex/"
+  url "https://github.com/WerWolv/ImHex/releases/download/v#{version}/imhex-#{version}-macOS-#{arch}.dmg"
   name "ImHex"
   desc "Hex editor for reverse engineers"
   homepage "https://imhex.werwolv.net/"
@@ -25,11 +24,10 @@ cask "imhex" do
 
   app "ImHex.app"
 
-  postflight do
-    system_command "/usr/bin/xattr",
-                   args:         ["-dr", "com.apple.quarantine", "#{appdir}/ImHex.app"],
-                   sudo:         false,
-                   must_succeed: false
+  postflight_steps do
+    run "/usr/bin/xattr",
+        args:         ["-dr", "com.apple.quarantine", "{{appdir}}/ImHex.app"],
+        must_succeed: false
   end
 
   zap trash: [
