@@ -62,8 +62,7 @@ cask "qbittorrent@lt20" do
     app_image "qbittorrent-#{version}_lt20_#{arch}.AppImage", target: "qBittorrent.AppImage"
   end
 
-  url "https://downloads.sourceforge.net/qbittorrent/qbittorrent-#{os}/qbittorrent-#{version}/qbittorrent-#{version}_lt20#{url_end}",
-      verified: "downloads.sourceforge.net/qbittorrent/"
+  url "https://downloads.sourceforge.net/qbittorrent/qbittorrent-#{os}/qbittorrent-#{version}/qbittorrent-#{version}_lt20#{url_end}"
   name "qBittorrent"
   desc "Edition of qBitorrent based on libtorrent-rasterbar 2.0.x"
   homepage "https://www.qbittorrent.org/"
