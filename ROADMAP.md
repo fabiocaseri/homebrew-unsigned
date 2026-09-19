@@ -61,11 +61,11 @@ The core repository architecture is considered stable. The current focus is
 validating the automation against real upstream releases before adding more
 infrastructure or broadening update policies.
 
-- [ ] Observe the first real automatic package update detected by the scheduled workflow
-- [ ] Verify that `fabiocaseri-automation[bot]` creates the autobump branch, commit, and pull request
-- [ ] Verify that a pull request created with the GitHub App installation token triggers the expected `pull_request` validation workflow
-- [ ] Verify the first real multi-architecture automatic update, especially RAR
-- [ ] Verify the first real automatic update of ExifCleaner or ImHex
+- [x] Observe the first real automatic package update detected by the scheduled workflow [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
+- [x] Verify that `fabiocaseri-automation[bot]` creates the autobump branch, commit, and pull request [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
+- [x] Verify that a pull request created with the GitHub App installation token triggers the expected `pull_request` validation workflow [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
+- [x] Verify the first real multi-architecture automatic update [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
+- [x] Verify the first real automatic update of ExifCleaner or ImHex [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
 - [ ] Observe the first real manual-update notification and confirm that the issue is created or refreshed by `fabiocaseri-automation[bot]`
 - [ ] Confirm that repeated scheduled runs remain idempotent when an update PR or manual-update issue already exists
 
