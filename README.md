@@ -37,7 +37,7 @@ For packages with automatic updates enabled in `packages.yml`, the update workfl
 3. verifies that only the expected package recipe was modified;
 4. validates that the recipe diff is within the allowed automatic-update policy;
 5. creates a dedicated `autobump/...` branch;
-6. opens a pull request against `main`;
+6. opens a pull request against `main` with the `autobump` label;
 7. runs the repository validation and security checks.
 
 Automatic update pull requests are never merged automatically.

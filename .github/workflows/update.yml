@@ -304,6 +304,7 @@ jobs:
             )"
 
             if [[ -n "${existing_pr}" ]]; then
+              gh pr edit "${existing_pr}" --add-label autobump
               echo "Update PR already exists: ${existing_pr}"
               exit 0
             fi
@@ -343,7 +344,8 @@ jobs:
               --base main \
               --head "${branch}" \
               --title "${PACKAGE_NAME}: update ${CURRENT} to ${LATEST}" \
-              --body-file pr-body.md
+              --body-file pr-body.md \
+              --label autobump
           )"
 
           echo "Created ${pr_url}"
