@@ -36,6 +36,8 @@ item. The link label uses the 7-character short SHA.
 
 ## Automation and maintenance
 
+Homebrew DSL, audit, and packaging compatibility changes are handled as manual maintenance when they affect imported recipes. The tap does not automatically rebase or synchronize recipes against `homebrew-cask`.
+
 - [x] Monitor packages configured for manual updates and open/update maintainer issues [[ae2ea7c](https://github.com/fabiocaseri/homebrew-unsigned/commit/ae2ea7ca310d7bf5ab7d4452963ab62a79dba15c)]
 - [x] Add direct upstream release links to manual-update issues where a release template is available [[7522a91](https://github.com/fabiocaseri/homebrew-unsigned/commit/7522a919fa4a9611f8c27bf4d27da6781abe4a6c)]
 - [x] Keep Formula automatic updates fail-safe/manual until a Formula-specific policy is defined [[4f5a9a2](https://github.com/fabiocaseri/homebrew-unsigned/commit/4f5a9a260d613ddd51d7abfbcf5cf4dd96540ab4)]
