@@ -61,7 +61,7 @@ packages:
           status: context
 
     update:
-      enabled: false
+      enabled: true
       release_url_template: https://github.com/qbittorrent/qBittorrent/releases/tag/release-{version}
   - name: rar
     type: cask
