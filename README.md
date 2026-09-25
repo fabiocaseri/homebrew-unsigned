@@ -44,7 +44,7 @@ For packages with automatic updates enabled in `packages.yml`, the update workfl
 
 Automatic update pull requests are never merged automatically.
 
-For casks, automatic updates are currently accepted only when the Homebrew-generated diff changes the cask `version` and `sha256` fields. Any other recipe change causes the automatic update to stop for manual review.
+For casks, automatic updates are accepted only when the Homebrew-generated diff changes the expected current `version` value reported by `livecheck` to the detected latest version and updates the associated `sha256` stanza. Every other version stanza, including legacy compatibility pins, must remain unchanged. Any other recipe change causes the automatic update to stop for manual review.
 
 Automatic Formula diff validation is intentionally fail-safe for now: Formula updates require manual handling until a Formula-specific automatic-update policy is defined.
 

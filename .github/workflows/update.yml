@@ -270,6 +270,8 @@ jobs:
         env:
           PACKAGE_NAME: ${{ matrix.package.name }}
           PACKAGE_TYPE: ${{ matrix.package.type }}
+          CURRENT: ${{ steps.livecheck.outputs.current }}
+          LATEST: ${{ steps.livecheck.outputs.latest }}
         run: |
           if [[ "${PACKAGE_TYPE}" == "cask" ]]; then
             recipe="Casks/${PACKAGE_NAME}.rb"
@@ -277,7 +279,11 @@ jobs:
             recipe="Formula/${PACKAGE_NAME}.rb"
           fi
 
-          ruby scripts/validate-update-diff.rb "${PACKAGE_TYPE}" "${recipe}"
+          ruby scripts/validate-update-diff.rb \
+            "${PACKAGE_TYPE}" \
+            "${recipe}" \
+            "${CURRENT}" \
+            "${LATEST}"
 
       - name: Create update pull request
         if: ${{ steps.livecheck.outputs.outdated == 'true' && matrix.package.auto_update == true }}
