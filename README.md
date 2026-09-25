@@ -28,7 +28,9 @@ Package updates are checked automatically once per day.
 
 All packages are monitored with Homebrew `livecheck`, including packages whose recipes are intentionally configured for manual updates.
 
-If a newer version is detected for a manual-update package, the scheduled workflow opens or refreshes a GitHub issue for maintainer review without modifying the package recipe. When `update.release_url_template` is configured, the issue includes a direct link to the detected upstream release by substituting the latest version into the single `{version}` placeholder.
+When `update.release_url_template` is configured, update notifications include a direct link to the detected upstream release by substituting the latest version into the single `{version}` placeholder.
+
+If a newer version is detected for a manual-update package, the scheduled workflow opens or refreshes a GitHub issue for maintainer review without modifying the package recipe.
 
 For packages with automatic updates enabled in `packages.yml`, the update workflow:
 
@@ -37,7 +39,7 @@ For packages with automatic updates enabled in `packages.yml`, the update workfl
 3. verifies that only the expected package recipe was modified;
 4. validates that the recipe diff is within the allowed automatic-update policy;
 5. creates a dedicated `autobump/...` branch;
-6. opens a pull request against `main` with the `autobump` label;
+6. opens a pull request against `main` with the `autobump` label and, when configured, a direct upstream release link;
 7. runs the repository validation and security checks.
 
 Automatic update pull requests are never merged automatically.

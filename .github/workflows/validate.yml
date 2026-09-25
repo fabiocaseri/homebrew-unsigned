@@ -106,7 +106,6 @@ jobs:
 
             release_url_template = update["release_url_template"]
             if release_url_template
-              abort "#{name}: update.release_url_template is only valid when automatic updates are disabled" if update["enabled"]
               abort "#{name}: update.release_url_template must be a string" unless release_url_template.is_a?(String)
               abort "#{name}: update.release_url_template must contain exactly one {version} placeholder" unless release_url_template.scan("{version}").length == 1
 
