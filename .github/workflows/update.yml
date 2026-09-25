@@ -73,8 +73,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v3
         with:
-          client-id: ${{ vars.FABIOCASERI_AUTOMATION_CLIENT_ID }}
-          private-key: ${{ secrets.FABIOCASERI_AUTOMATION_PRIVATE_KEY }}
+          client-id: ${{ vars.AUTOMATION_APP_CLIENT_ID }}
+          private-key: ${{ secrets.AUTOMATION_APP_PRIVATE_KEY }}
           permission-contents: write
           permission-issues: write
           permission-pull-requests: write
@@ -96,7 +96,7 @@ jobs:
       - name: Tap checked-out repository
         shell: bash
         run: |
-          brew tap fabiocaseri/unsigned "file://${GITHUB_WORKSPACE}"
+          brew tap local/unsigned "file://${GITHUB_WORKSPACE}"
 
       - name: Trust package
         shell: bash
@@ -104,7 +104,7 @@ jobs:
           PACKAGE_NAME: ${{ matrix.package.name }}
           PACKAGE_TYPE: ${{ matrix.package.type }}
         run: |
-          fq="fabiocaseri/unsigned/${PACKAGE_NAME}"
+          fq="local/unsigned/${PACKAGE_NAME}"
 
           if [[ "${PACKAGE_TYPE}" == "cask" ]]; then
             brew trust --cask "${fq}"
@@ -119,7 +119,7 @@ jobs:
           PACKAGE_NAME: ${{ matrix.package.name }}
           PACKAGE_TYPE: ${{ matrix.package.type }}
         run: |
-          fq="fabiocaseri/unsigned/${PACKAGE_NAME}"
+          fq="local/unsigned/${PACKAGE_NAME}"
 
           if [[ "${PACKAGE_TYPE}" == "cask" ]]; then
             json="$(brew livecheck --json --cask "${fq}")"
@@ -224,8 +224,8 @@ jobs:
           PACKAGE_TYPE: ${{ matrix.package.type }}
           LATEST: ${{ steps.livecheck.outputs.latest }}
         run: |
-          fq="fabiocaseri/unsigned/${PACKAGE_NAME}"
-          tap_dir="$(brew --repository fabiocaseri/unsigned)"
+          fq="local/unsigned/${PACKAGE_NAME}"
+          tap_dir="$(brew --repository local/unsigned)"
 
           if [[ "${PACKAGE_TYPE}" == "cask" ]]; then
             recipe="Casks/${PACKAGE_NAME}.rb"
