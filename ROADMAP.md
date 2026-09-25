@@ -1,15 +1,14 @@
 # Roadmap
 
-This document tracks the implementation status and planned evolution of
-`homebrew-unsigned`.
+This document tracks the implementation status, validated capabilities, and
+trigger-based future evolution of `homebrew-unsigned`.
 
-The project follows a demand-driven approach: unchecked items do not
-necessarily represent technical debt. Deferred work should only be implemented
+The project follows a demand-driven approach: future work is implemented only
 when a concrete use case demonstrates that the current design is insufficient.
 
-Completed items should end with a link to the commit that landed the change on
-`main`, preferably the merge commit of the pull request that completed the
-item. The link label uses the 7-character short SHA.
+Completed items include the commit that landed the change on `main`, preferably
+the merge commit of the pull request that completed the item. The link label
+uses the 7-character short SHA.
 
 ## Completed foundations
 
@@ -49,52 +48,35 @@ Homebrew DSL, audit, and packaging compatibility changes are handled as manual m
 - [x] Use short-lived installation tokens and the dedicated automation App bot identity [[91722d1](https://github.com/fabiocaseri/homebrew-unsigned/commit/91722d1def10ff277ba1962b722fb79660eccb1c)]
 - [x] Document registration, installation, permissions, rotation, verification, cleanup, and recovery in `docs/github-app.md` [[91722d1](https://github.com/fabiocaseri/homebrew-unsigned/commit/91722d1def10ff277ba1962b722fb79660eccb1c)]
 - [x] Remove workflow dependence on `HOMEBREW_UPDATE_TOKEN` [[91722d1](https://github.com/fabiocaseri/homebrew-unsigned/commit/91722d1def10ff277ba1962b722fb79660eccb1c)]
+- [x] Make maintainer automation configuration fork-friendly and owner-agnostic [[5c038ad](https://github.com/fabiocaseri/homebrew-unsigned/commit/5c038ade3b0ce86c9e7d63ca93a49ef9ec230c81)]
 
 ## Agent and development guidance
 
 - [x] Add `AGENTS.md` with repository invariants, maintainer workflow, Homebrew-first rules, and Ponytail / Lazy Senior Dev guidance [[53498a8](https://github.com/fabiocaseri/homebrew-unsigned/commit/53498a8a90b7959eac8856999d74fcd13d8bfa72)]
 - [x] Add `CLAUDE.md` as a symlink to `AGENTS.md` so agent guidance has a single source of truth [[53498a8](https://github.com/fabiocaseri/homebrew-unsigned/commit/53498a8a90b7959eac8856999d74fcd13d8bfa72)]
 
-## Current phase — Real-world observation
+## Validated in real use
 
-The core repository architecture is considered stable. The current focus is
-validating the automation against real upstream releases before adding more
-infrastructure or broadening update policies.
+The core repository architecture is considered stable. The following behaviors
+have been observed against real upstream releases and normal repository
+automation.
 
 - [x] Observe the first real automatic package update detected by the scheduled workflow [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
 - [x] Verify that the automation App bot identity creates the autobump branch, commit, and pull request [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
 - [x] Verify that a pull request created with the GitHub App installation token triggers the expected `pull_request` validation workflow [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
 - [x] Verify the first real multi-architecture automatic update [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
 - [x] Verify the first real automatic update of ExifCleaner or ImHex [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
-- [ ] Observe the first real manual-update notification and confirm that the issue is created or refreshed by the automation App bot identity
-- [ ] Confirm that repeated scheduled runs remain idempotent when an update PR or manual-update issue already exists
+- [x] Verify fork-friendly GitHub App credentials and local CI tap handling in a real `Update packages` workflow run [[5c038ad](https://github.com/fabiocaseri/homebrew-unsigned/commit/5c038ade3b0ce86c9e7d63ca93a49ef9ec230c81)]
 
-## Backlog
-
-### Package maintenance
-
-- [ ] Evaluate additional Gatekeeper-disabled Homebrew packages when useful candidates are identified
-- [ ] Validate that new package types fit the existing metadata and security model before extending the schema
-- [ ] Add package-specific upstream context where it provides useful documentary value
-
-### Automation
-
-- [ ] Define a safe automatic-update policy for Formulae only when a real Formula use case requires it
-- [ ] Revisit download retry handling only if transient upstream failures become recurrent
-- [ ] Revisit package-specific update handling only when the current generic workflow proves insufficient
-
-### GitHub App
-
-- [ ] Consider installing the dedicated automation GitHub App on other repositories when a concrete automation use case appears
-- [ ] Keep GitHub App permissions at the minimum required scope when new automation is added
-
-## Deferred / trigger-based work
+## Trigger-based future work
 
 These items are intentionally not scheduled. They should be implemented only
 when a concrete use case demonstrates that the current design is insufficient.
 
-- [ ] Formula automatic updates
-- [ ] Custom retry/backoff infrastructure for upstream downloads
-- [ ] Additional GitHub App infrastructure such as webhooks or an external runtime
-- [ ] More complex package metadata abstractions
-- [ ] Additional CI or release automation
+- [ ] Define a safe automatic-update policy for Formulae when a real Formula use case requires it.
+- [ ] Add support for new package types only when a concrete package cannot fit the existing metadata and security model.
+- [ ] Add download retry/backoff handling only if transient upstream failures become recurrent.
+- [ ] Add package-specific update handling only when the current generic workflow proves insufficient.
+- [ ] Add more complex metadata abstractions only when repeated real package requirements justify them.
+- [ ] Add additional CI or release automation only when an operational need appears.
+- [ ] Add GitHub App infrastructure such as webhooks or an external runtime only when the current GitHub Actions-based model becomes insufficient.
