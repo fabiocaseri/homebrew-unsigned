@@ -45,8 +45,8 @@ Homebrew DSL, audit, and packaging compatibility changes are handled as manual m
 
 ## GitHub App automation
 
-- [x] Replace the long-lived maintainer PAT with the private `fabiocaseri-automation` GitHub App [[91722d1](https://github.com/fabiocaseri/homebrew-unsigned/commit/91722d1def10ff277ba1962b722fb79660eccb1c)]
-- [x] Use short-lived installation tokens and the dedicated `fabiocaseri-automation[bot]` identity [[91722d1](https://github.com/fabiocaseri/homebrew-unsigned/commit/91722d1def10ff277ba1962b722fb79660eccb1c)]
+- [x] Replace the long-lived maintainer PAT with the dedicated automation GitHub App [[91722d1](https://github.com/fabiocaseri/homebrew-unsigned/commit/91722d1def10ff277ba1962b722fb79660eccb1c)]
+- [x] Use short-lived installation tokens and the dedicated automation App bot identity [[91722d1](https://github.com/fabiocaseri/homebrew-unsigned/commit/91722d1def10ff277ba1962b722fb79660eccb1c)]
 - [x] Document registration, installation, permissions, rotation, verification, cleanup, and recovery in `docs/github-app.md` [[91722d1](https://github.com/fabiocaseri/homebrew-unsigned/commit/91722d1def10ff277ba1962b722fb79660eccb1c)]
 - [x] Remove workflow dependence on `HOMEBREW_UPDATE_TOKEN` [[91722d1](https://github.com/fabiocaseri/homebrew-unsigned/commit/91722d1def10ff277ba1962b722fb79660eccb1c)]
 
@@ -62,11 +62,11 @@ validating the automation against real upstream releases before adding more
 infrastructure or broadening update policies.
 
 - [x] Observe the first real automatic package update detected by the scheduled workflow [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
-- [x] Verify that `fabiocaseri-automation[bot]` creates the autobump branch, commit, and pull request [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
+- [x] Verify that the automation App bot identity creates the autobump branch, commit, and pull request [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
 - [x] Verify that a pull request created with the GitHub App installation token triggers the expected `pull_request` validation workflow [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
 - [x] Verify the first real multi-architecture automatic update [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
 - [x] Verify the first real automatic update of ExifCleaner or ImHex [[23ddec3](https://github.com/fabiocaseri/homebrew-unsigned/commit/23ddec3ceb38ebeec7530c49b83dabc651b953db)]
-- [ ] Observe the first real manual-update notification and confirm that the issue is created or refreshed by `fabiocaseri-automation[bot]`
+- [ ] Observe the first real manual-update notification and confirm that the issue is created or refreshed by the automation App bot identity
 - [ ] Confirm that repeated scheduled runs remain idempotent when an update PR or manual-update issue already exists
 
 ## Backlog
@@ -85,7 +85,7 @@ infrastructure or broadening update policies.
 
 ### GitHub App
 
-- [ ] Consider installing `fabiocaseri-automation` on other personal repositories when a concrete automation use case appears
+- [ ] Consider installing the dedicated automation GitHub App on other repositories when a concrete automation use case appears
 - [ ] Keep GitHub App permissions at the minimum required scope when new automation is added
 
 ## Deferred / trigger-based work

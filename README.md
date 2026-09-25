@@ -76,14 +76,14 @@ Package-specific compatibility changes, such as quarantine handling, must remain
 
 ## Maintainer setup
 
-The update workflow uses GitHub's standard `GITHUB_TOKEN` for read-only operations and the repository-scoped `fabiocaseri-automation` GitHub App for repository mutations.
+The update workflow uses GitHub's standard `GITHUB_TOKEN` for read-only operations and a repository-scoped maintainer automation GitHub App for repository mutations.
 
-The GitHub App provides a dedicated bot identity and short-lived installation access tokens for automated issues, commits, branches, and pull requests. Its installation is restricted to selected repositories and currently includes only this repository.
+The GitHub App provides a dedicated bot identity and short-lived installation access tokens for automated issues, commits, branches, and pull requests. Its installation is restricted to selected repositories.
 
 Repository Actions configuration requires:
 
-- repository variable `FABIOCASERI_AUTOMATION_CLIENT_ID`;
-- repository secret `FABIOCASERI_AUTOMATION_PRIVATE_KEY`.
+- repository variable `AUTOMATION_APP_CLIENT_ID`;
+- repository secret `AUTOMATION_APP_PRIVATE_KEY`.
 
 The App is installed with the minimum repository permissions required by the workflow:
 

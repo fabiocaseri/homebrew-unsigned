@@ -1,6 +1,6 @@
 # GitHub App automation
 
-This document is the maintainer runbook for the GitHub App used by this repository's automated maintenance workflow.
+This document is a fork-friendly maintainer runbook for the repository-scoped GitHub App used by this repository's automated maintenance workflow.
 
 ## Purpose
 
@@ -9,7 +9,7 @@ The scheduled update workflow performs two kinds of repository mutations:
 - opens or refreshes issues when a package configured for manual updates has a newer upstream version;
 - creates commits, `autobump/...` branches, and pull requests for packages whose automatic update policy accepts the Homebrew-generated recipe change.
 
-These mutations use the `fabiocaseri-automation` GitHub App rather than a maintainer personal access token or the workflow's standard `GITHUB_TOKEN`.
+These mutations use a repository-scoped maintainer automation GitHub App rather than a maintainer personal access token or the workflow's standard `GITHUB_TOKEN`.
 
 The design goals are:
 
@@ -21,12 +21,12 @@ The design goals are:
 
 GitHub Actions remains the automation engine. The GitHub App provides identity and authorization only.
 
-## Current configuration
+## Expected configuration
 
-GitHub App:
+GitHub App name:
 
 ```text
-fabiocaseri-automation
+<your-app-name>
 ```
 
 Registration scope:
@@ -39,7 +39,7 @@ Repository installation scope:
 
 ```text
 Only select repositories
-fabiocaseri/homebrew-unsigned
+<owner>/<repository>
 ```
 
 Repository permissions:
@@ -76,13 +76,13 @@ Configure:
 
 ```text
 GitHub App name:
-fabiocaseri-automation
+<your-app-name>
 
 Description:
 Personal repository automation for maintenance workflows and automated pull requests/issues.
 
 Homepage URL:
-https://github.com/fabiocaseri/homebrew-unsigned
+https://github.com/<owner>/<repository>
 ```
 
 Under user authorization:
@@ -127,7 +127,7 @@ From the GitHub App settings page:
 Settings
 → Developer settings
 → GitHub Apps
-→ fabiocaseri-automation
+→ <your-app-name>
 → General
 → Private keys
 → Generate a private key
@@ -147,9 +147,9 @@ From the App settings page, choose:
 
 ```text
 Install App
-→ fabiocaseri
+→ <owner>
 → Only select repositories
-→ fabiocaseri/homebrew-unsigned
+→ <owner>/<repository>
 → Install
 ```
 
@@ -160,7 +160,7 @@ Read access to metadata
 Read and write access to code, issues, and pull requests
 ```
 
-and that repository access is still limited to `fabiocaseri/homebrew-unsigned`.
+and that repository access is still limited to `<owner>/<repository>`.
 
 If another repository needs the same automation in the future, explicitly add that repository to the installation rather than switching to `All repositories` without a concrete need.
 
@@ -169,7 +169,7 @@ If another repository needs the same automation in the future, explicitly add th
 Open:
 
 ```text
-fabiocaseri/homebrew-unsigned
+<owner>/<repository>
 → Settings
 → Secrets and variables
 → Actions
@@ -178,7 +178,7 @@ fabiocaseri/homebrew-unsigned
 Create the repository variable:
 
 ```text
-FABIOCASERI_AUTOMATION_CLIENT_ID
+AUTOMATION_APP_CLIENT_ID
 ```
 
 with the GitHub App **Client ID** shown on the App's General page.
@@ -188,7 +188,7 @@ Do not use the App ID unless a future tool specifically requires it. `actions/cr
 Create the encrypted repository secret:
 
 ```text
-FABIOCASERI_AUTOMATION_PRIVATE_KEY
+AUTOMATION_APP_PRIVATE_KEY
 ```
 
 whose value is the complete contents of the generated PEM file, including its BEGIN/END lines.
@@ -204,8 +204,8 @@ No OAuth client secret or installation ID is required by the workflow.
   id: app-token
   uses: actions/create-github-app-token@v3
   with:
-    client-id: ${{ vars.FABIOCASERI_AUTOMATION_CLIENT_ID }}
-    private-key: ${{ secrets.FABIOCASERI_AUTOMATION_PRIVATE_KEY }}
+    client-id: ${{ vars.AUTOMATION_APP_CLIENT_ID }}
+    private-key: ${{ secrets.AUTOMATION_APP_PRIVATE_KEY }}
     permission-contents: write
     permission-issues: write
     permission-pull-requests: write
@@ -217,7 +217,7 @@ The action returns:
 
 - `token` — the short-lived installation access token;
 - `installation-id` — the resolved installation;
-- `app-slug` — `fabiocaseri-automation`.
+- `app-slug` — the GitHub App slug returned for the installed App (for example, `<your-app-name>`).
 
 The token is masked by GitHub Actions and is revoked by the action's post step when the job finishes. Installation access tokens otherwise have a maximum lifetime of one hour.
 
@@ -228,9 +228,11 @@ The workflow intentionally keeps the standard `GITHUB_TOKEN` limited to read-onl
 For automatically generated commits, the workflow resolves the App bot user's numeric GitHub user ID and configures Git as:
 
 ```text
-fabiocaseri-automation[bot]
-<BOT_USER_ID>+fabiocaseri-automation[bot]@users.noreply.github.com
+<your-app-name>[bot]
+<BOT_USER_ID>+<your-app-name>[bot]@users.noreply.github.com
 ```
+
+The workflow derives the App slug dynamically from the installation token (`app-slug`) and does not hardcode the bot identity, which becomes `<your-app-name>[bot]`.
 
 The same App token is used by `gh issue`, `git push`, and `gh pr`, so automated repository activity is consistently attributable to the GitHub App.
 
@@ -243,7 +245,7 @@ A healthy run should show the `Create GitHub App token` and `Resolve GitHub App 
 The identity step should log a line similar to:
 
 ```text
-Authenticated as fabiocaseri-automation[bot] (user id …).
+Authenticated as <your-app-name>[bot] (user id …).
 ```
 
 This is a read-only authentication check and does not create an issue or pull request by itself.
@@ -251,14 +253,14 @@ This is a read-only authentication check and does not create an issue or pull re
 When a real manual-update notification is later required, verify that its author is:
 
 ```text
-fabiocaseri-automation[bot]
+<your-app-name>[bot]
 ```
 
 When a real automatic package update is later generated, verify that:
 
 - the commit author/committer uses the App bot identity;
 - the `autobump/...` branch is pushed successfully;
-- the pull request author is `fabiocaseri-automation[bot]`;
+- the pull request author is `<your-app-name>[bot]`;
 - the normal `pull_request` workflow runs;
 - required `validate` and `security` checks pass;
 - the pull request is not merged automatically.
@@ -300,14 +302,14 @@ After successful verification:
    → Workflow permissions
    ```
 
-The workflow no longer relies on either mechanism. Repository mutations are performed through the `fabiocaseri-automation` installation token.
+The workflow no longer relies on either mechanism. Repository mutations are performed through the maintainer automation App's installation token.
 
 ## Key rotation
 
 To rotate the App private key without interrupting automation:
 
 1. generate a new private key from the App's General page;
-2. replace the repository secret `FABIOCASERI_AUTOMATION_PRIVATE_KEY` with the new PEM contents;
+2. replace the repository secret `AUTOMATION_APP_PRIVATE_KEY` with the new PEM contents;
 3. manually run `Update packages`;
 4. verify that App-token creation and bot identity resolution succeed;
 5. return to the App settings and delete the old private key;
@@ -327,7 +329,7 @@ Verify the effective permissions on:
 Account Settings
 → Applications
 → Installed GitHub Apps
-→ fabiocaseri-automation
+→ <your-app-name>
 ```
 
 Do not broaden installation access to all repositories merely to resolve a permissions error.
@@ -336,10 +338,10 @@ Do not broaden installation access to all repositories merely to resolve a permi
 
 If another repository needs this App:
 
-1. edit the existing `fabiocaseri-automation` installation;
+1. edit the existing `<your-app-name>` installation;
 2. keep `Only select repositories`;
 3. add the new repository explicitly;
-4. configure that repository's Client ID variable and private-key secret;
+4. configure that repository's `AUTOMATION_APP_CLIENT_ID` repository variable and `AUTOMATION_APP_PRIVATE_KEY` repository secret;
 5. integrate the App token into that repository's workflow;
 6. verify the bot identity and required permissions there.
 
@@ -351,8 +353,8 @@ If the App token stops working:
 
 1. verify that the App is still installed on the repository;
 2. verify the effective installation permissions;
-3. verify that `FABIOCASERI_AUTOMATION_CLIENT_ID` still matches the App's Client ID;
-4. rotate `FABIOCASERI_AUTOMATION_PRIVATE_KEY`;
+3. verify that `AUTOMATION_APP_CLIENT_ID` still matches the App's Client ID;
+4. rotate `AUTOMATION_APP_PRIVATE_KEY`;
 5. manually run `Update packages` and inspect the token/identity steps.
 
 To disable the automation identity immediately, suspend or uninstall the App installation from the account's installed GitHub Apps settings.

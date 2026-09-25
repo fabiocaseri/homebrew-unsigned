@@ -188,7 +188,7 @@ Do not infer that an upstream issue being closed means the maintainer "refuses t
 
 GitHub Actions is the automation engine.
 
-Repository mutations performed by automated maintenance use the repository-scoped `fabiocaseri-automation` GitHub App and short-lived installation tokens. See [`docs/github-app.md`](docs/github-app.md).
+Repository mutations performed by automated maintenance use the repository-scoped automation GitHub App and short-lived installation tokens. See [`docs/github-app.md`](docs/github-app.md).
 
 Do not:
 

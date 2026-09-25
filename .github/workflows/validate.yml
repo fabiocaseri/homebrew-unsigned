@@ -211,7 +211,7 @@ jobs:
       - name: Tap checked-out repository
         shell: bash
         run: |
-          brew tap fabiocaseri/unsigned "file://${GITHUB_WORKSPACE}"
+          brew tap local/unsigned "file://${GITHUB_WORKSPACE}"
 
       - name: Homebrew style
         shell: bash
@@ -227,7 +227,7 @@ jobs:
         shell: bash
         run: |
           while IFS=$'\t' read -r name type; do
-            fq="fabiocaseri/unsigned/${name}"
+            fq="local/unsigned/${name}"
 
             if [[ "${type}" == "cask" ]]; then
               brew trust --cask "${fq}"
@@ -249,7 +249,7 @@ jobs:
         run: |
           ruby -ryaml -e '
             YAML.safe_load(File.read("packages.yml"), aliases: false).fetch("packages").each do |p|
-              fq = "fabiocaseri/unsigned/#{p.fetch("name")}"
+              fq = "local/unsigned/#{p.fetch("name")}"
               system("brew", "livecheck", fq) or exit 1
             end
           '
@@ -269,13 +269,13 @@ jobs:
       - name: Tap checked-out repository
         shell: bash
         run: |
-          brew tap fabiocaseri/unsigned "file://${GITHUB_WORKSPACE}"
+          brew tap local/unsigned "file://${GITHUB_WORKSPACE}"
 
       - name: Install and inspect Gatekeeper casks
         shell: bash
         run: |
           while IFS=$'\t' read -r name dequarantine; do
-            fq="fabiocaseri/unsigned/${name}"
+            fq="local/unsigned/${name}"
 
             echo "::group::${name}"
             brew trust --cask "${fq}"
