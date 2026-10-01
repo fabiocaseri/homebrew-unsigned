@@ -32,6 +32,8 @@ When `update.release_url_template` is configured, update notifications include a
 
 If a newer version is detected for a manual-update package, the scheduled workflow opens or refreshes a GitHub issue for maintainer review without modifying the package recipe.
 
+If Homebrew `livecheck` cannot determine a version for a package, the workflow reports the error reported by Homebrew and fails that package's job. A failed version check is never treated as "up to date".
+
 For packages with automatic updates enabled in `packages.yml`, the update workflow:
 
 1. runs Homebrew `livecheck` to detect a newer upstream release;

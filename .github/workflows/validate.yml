@@ -254,6 +254,49 @@ jobs:
             end
           '
 
+      - name: Validate livecheck JSON parsing
+        shell: bash
+        run: |
+          # The update workflow reads `brew livecheck --json` output, so the
+          # parser must reject livecheck errors instead of crashing on them.
+          expect_ok() {
+            local name="$1" json="$2" expected="$3"
+            local actual
+            actual="$(printf '%s' "${json}" | ruby scripts/parse-livecheck.rb "${name}")"
+
+            if [[ "${actual}" != "${expected}" ]]; then
+              echo "::error::${name}: expected '${expected}', got '${actual}'"
+              exit 1
+            fi
+
+            echo "ok: ${name} -> ${actual}"
+          }
+
+          expect_failure() {
+            local name="$1" json="$2" diagnostic status
+
+            # `|| status=$?` keeps `set -e` from stopping the step on the
+            # expected non-zero exit, while still capturing stderr and status.
+            diagnostic="$(printf '%s' "${json}" | ruby scripts/parse-livecheck.rb "${name}" 2>&1)" || status=$?
+
+            if [[ -z "${status}" ]]; then
+              echo "::error::${name}: expected parsing to fail, but it succeeded"
+              exit 1
+            fi
+
+            printf '%s\n' "${diagnostic}"
+          }
+
+          expect_ok "exifcleaner" \
+            '[{"cask":"exifcleaner","version":{"current":"4.5.0","latest":"4.5.1","outdated":true}}]' \
+            "4.5.0 4.5.1 true"
+
+          expect_failure "qbittorrent@lt20" \
+            '[{"cask":"qbittorrent@lt20","status":"error","messages":["Unable to get versions"],"meta":{"livecheck_defined":true}}]'
+
+          expect_failure "imhex" '[{"cask":"imhex","version":{"current":"1.38.1"}}]'
+          expect_failure "rar" 'not json'
+
   security:
     name: security
     runs-on: macos-15
