@@ -129,20 +129,11 @@ jobs:
 
           printf '%s\n' "${json}"
 
-          CURRENT="$(
-            printf '%s' "${json}" |
-              ruby -rjson -e 'data = JSON.parse(STDIN.read).first; puts data.fetch("version").fetch("current")'
+          versions="$(
+            printf '%s' "${json}" | ruby scripts/parse-livecheck.rb "${PACKAGE_NAME}"
           )"
 
-          LATEST="$(
-            printf '%s' "${json}" |
-              ruby -rjson -e 'data = JSON.parse(STDIN.read).first; puts data.fetch("version").fetch("latest")'
-          )"
-
-          OUTDATED="$(
-            printf '%s' "${json}" |
-              ruby -rjson -e 'data = JSON.parse(STDIN.read).first; puts data.fetch("version").fetch("outdated")'
-          )"
+          read -r CURRENT LATEST OUTDATED <<< "${versions}"
 
           {
             echo "current=${CURRENT}"
