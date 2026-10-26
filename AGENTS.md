@@ -243,6 +243,14 @@ scripts/close-change.sh <branch>
 
 Do not bypass these helpers without a concrete reason.
 
+### Temporary local taps
+
+A temporary tap such as `local/unsigned` pointing at a checked-out copy of this repository exists to validate recipes during development. Real application installations must come from the permanent public tap, `fabiocaseri/unsigned`; never install application casks from a temporary tap.
+
+Before removing a temporary tap, verify that Homebrew does not associate any installed package with it. If it does, stop and ask the maintainer instead of accepting uninstall prompts. Never run `brew uninstall` or `brew untap` as an automatic cleanup step without first checking whether installed packages would be affected.
+
+Never leave a temporary tap registered with an origin pointing to an ephemeral directory; a tap whose origin disappears breaks `brew update` for the whole machine.
+
 ## Pull requests
 
 Keep each PR focused on one concern.

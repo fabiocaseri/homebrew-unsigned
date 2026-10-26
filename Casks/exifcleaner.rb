@@ -1,9 +1,9 @@
 cask "exifcleaner" do
   arch arm: "-arm64"
 
-  version "4.6.0"
-  sha256 arm:   "0cb0d674f0658e17ad20047e47ab513bd7cb1b53677dfaf81e57e82b0b618c5a",
-         intel: "4679eeb34a268bb97c326003dde4ba870b6b703c931d27722ecc207822a97b19"
+  version "4.7.0"
+  sha256 arm:   "a58f1b730be2e9ad9241d405cc4b40d6762e56c81710fd7f7251b6f97e3cddcf",
+         intel: "ebea37ec7e6e22ad556da596caf7208c68c14ddecc8567183ab41864f8cbd344"
 
   url "https://github.com/szTheory/exifcleaner/releases/download/v#{version}/ExifCleaner-#{version}#{arch}.dmg"
   name "ExifCleaner"
@@ -18,7 +18,7 @@ cask "exifcleaner" do
   # Upstream Homebrew status:
   # disable! date: "2026-09-01", because: :fails_gatekeeper_check
 
-  depends_on macos: :monterey
+  depends_on macos: :ventura
 
   app "ExifCleaner.app"
 
