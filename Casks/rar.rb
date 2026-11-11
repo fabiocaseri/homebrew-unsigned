@@ -36,5 +36,5 @@ cask "rar" do
         must_succeed: false
   end
 
-  # No zap stanza required
+  zap :not_required
 end
