@@ -1,9 +1,9 @@
 cask "exifcleaner" do
   arch arm: "-arm64"
 
-  version "4.7.0"
-  sha256 arm:   "a58f1b730be2e9ad9241d405cc4b40d6762e56c81710fd7f7251b6f97e3cddcf",
-         intel: "ebea37ec7e6e22ad556da596caf7208c68c14ddecc8567183ab41864f8cbd344"
+  version "4.8.0"
+  sha256 arm:   "6a44065d6ce07e24e2d7ed31a8285fcbc6e557a694d054671b9d1839270d5555",
+         intel: "dd84a7c7b4e21e179b3a7871f586663da3dc9e04a53a4eebd42a2f7c25a6511a"
 
   url "https://github.com/szTheory/exifcleaner/releases/download/v#{version}/ExifCleaner-#{version}#{arch}.dmg"
   name "ExifCleaner"
